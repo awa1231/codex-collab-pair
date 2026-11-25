@@ -1,0 +1,43 @@
+{
+  "name": "codex-collab-pair",
+  "version": "2.1.0",
+  "description": "A minimal Codex plugin that turns a conversation into a project manager, creates employee conversations, delegates tasks, and keeps a simple todo list.",
+  "type": "module",
+  "license": "MIT",
+  "author": "awa1231",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/awa1231/codex-collab-pair.git",
+    "directory": "plugins/collab-pair"
+  },
+  "homepage": "https://github.com/awa1231/codex-collab-pair",
+  "bugs": {
+    "url": "https://github.com/awa1231/codex-collab-pair/issues"
+  },
+  "keywords": [
+    "codex",
+    "codex-plugin",
+    "agent-skills",
+    "collaboration",
+    "project-manager",
+    "delegation",
+    "todo-list"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    ".codex-plugin/",
+    "assets/",
+    "skills/",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "check": "node --check skills/collab-pair/scripts/thread-context.mjs && node --check skills/collab-pair/scripts/dispatch.mjs && node --check skills/collab-pair/scripts/todo.mjs"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
