@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.1.0
+
+- Added English manager and employee prompts and title prefixes.
+- Made English the default language, with optional Chinese mode.
+- Added a persistent per-conversation todo list.
+- Added `scripts/todo.mjs` with add, list, next, done, remove, and clear actions.
+
 ## 2.0.0
 
 - Simplified the plugin to a skill-only workflow.

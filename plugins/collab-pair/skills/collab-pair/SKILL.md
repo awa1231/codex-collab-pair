@@ -1,21 +1,30 @@
 ---
 name: collab-pair
-description: Turn a Codex conversation into a project manager that can create worker conversations and delegate tasks. Use when the user asks to make the current conversation a project manager, create workers for it, or have that manager assign tasks across conversations.
+description: Make a Codex conversation a project manager, create worker conversations, delegate tasks, and keep a simple saved todo list. Use when the user asks to set a manager, create workers, split work across conversations, or manage a short list of delegated tasks.
 metadata:
-  short-description: Make a conversation manage worker conversations
+  short-description: Manager and worker conversations with a simple todo list
 ---
 
 # Collab Pair
 
-Keep this workflow small. Use only Codex's built-in conversation tools; this plugin has no task board, database, or background server.
+Keep this plugin small. It uses Codex's built-in conversation tools and one tiny todo-state script.
 
-## Roles
+## Language
 
-- A project manager is the current conversation after its title is prefixed with `【项目经理】`.
-- A worker is a conversation created by the manager with a title prefixed by `【员工】`.
-- The user remains in control of whether new conversations are created.
+- Use **English by default** for role prefixes, generated prompts, status, and todo summaries.
+- Switch to Chinese only when the user explicitly says to use Chinese or asks for the Chinese version.
+- English role prefixes: `[Project Manager]`, `[Employee]`.
+- Chinese role prefixes: `【项目经理】`, `【员工】`.
 
-## Identify the current conversation
+## Core rules
+
+- The current conversation becomes a project manager when its title is prefixed with `[Project Manager]`.
+- A manager-created worker title is prefixed with `[Employee]`.
+- Create conversations only when the user explicitly asks for a worker.
+- The manager owns the goal, task split, worker creation, acceptance, and final response.
+- Workers execute one assigned task and return a concise result.
+
+## Identify the conversation
 
 Run:
 
@@ -23,94 +32,129 @@ Run:
 node <skill-dir>/scripts/thread-context.mjs
 ```
 
-Use the printed `threadId`. Then call `list_threads` and find the exact conversation. Never infer the id from a title.
+Use the printed `threadId`, then call `list_threads` to obtain the exact current title and project metadata.
 
-## Make the current conversation a project manager
+## Set as project manager
 
-When the user says to make this conversation a project manager:
+When the user asks to make this conversation a manager:
 
-1. Get the current thread id and metadata with the helper and `list_threads`.
-2. Remove an existing `【项目经理】` or `【员工】` prefix from the current title.
-3. Call `set_thread_title` and prefix the title with `【项目经理】`.
-4. Confirm briefly that this conversation is now the manager.
+1. Get the exact current thread id and metadata.
+2. Remove any known role prefix from the title.
+3. Rename it to `[Project Manager] <title>` by default.
+4. Confirm in one short sentence.
 
-Do not create a worker during this step. Creating conversations requires a later explicit user request such as “创建一个员工” or “把这个任务交给员工”.
-
-Example:
-
-```text
-原标题：修复登录流程
-新标题：【项目经理】修复登录流程
-```
+Do not create a worker during this step.
 
 ## Create a worker
 
-When the user explicitly asks the project manager to create a worker:
+When the user explicitly asks the manager to create a worker:
 
-1. Confirm that the current conversation is the manager.
-2. Call `create_thread`.
-3. Use the same project/environment as the manager when possible.
-4. Set the new title to `【员工】<worker name>`.
-5. Give the new conversation a short prompt:
+1. Call `create_thread`.
+2. Use the manager's project/environment when possible.
+3. Set the title to `[Employee] <name>`.
+4. Pass a short placeholder prompt to `create_thread`; the real task is queued in the next step:
 
 ```text
-你是项目经理创建的员工对话。
-
-本轮任务：
-<task>
-
-验收标准：
-<acceptance, if provided>
-
-直接执行任务，不要扩大范围。结束时给出简洁的交付说明、修改内容和验证结果。
+Wait for the project manager's queued task.
 ```
 
-6. Return the new conversation title and id to the user.
+5. Queue the real task with `dispatch.mjs`, trigger it, wait, and read the result.
+6. Return the employee title, thread id, and verified result.
 
-Create one worker per explicitly requested role. If the user asks for three workers, create three separate conversations. Do not create workers speculatively.
+Create one worker per explicitly requested role.
 
-If `create_thread` cannot select a working directory or project, ask the user to create the worker from the intended workspace; do not guess.
+### Important delivery rule
 
-## Assign another task
+In current Codex desktop builds, `create_thread.prompt` and `send_message_to_thread` may appear to the recipient as internal delegation output instead of a normal user task. Deliver the task through the queue script:
 
-When a worker already exists, use `send_message_to_thread` with its exact thread id. Include:
+```bash
+node <skill-dir>/scripts/dispatch.mjs --thread <employeeThreadId> --message "<task prompt>"
+```
 
-- the task;
-- scope limits;
-- acceptance criteria;
-- a request for a concise final deliverable and verification summary.
+Then call `send_message_to_thread` with the employee id and the short trigger:
 
-Then call `wait_threads` for that worker and use `read_thread` to obtain its final answer.
+```text
+Continue with the queued user task now.
+```
 
-When several workers are running independently, wait for up to eight using `wait_threads`, then read each completed result.
+The trigger starts a turn; the queued message is what the employee executes. Always call `wait_threads`, then `read_thread`, and verify the actual final result.
+
+## Delegate a task
+
+For an existing worker, prepare a task containing:
+
+```text
+Manager task:
+<task>
+
+Scope:
+<limits>
+
+Acceptance:
+<criteria>
+
+Return a concise deliverable and verification summary.
+```
+
+Queue it with `dispatch.mjs`, trigger it with `send_message_to_thread`, then call `wait_threads` and `read_thread`. Review the actual result.
+
+## Simple todo list
+
+Any conversation can keep a persistent todo list. Use the exact thread id.
+
+Add an item:
+
+```bash
+node <skill-dir>/scripts/todo.mjs --action add --thread <threadId> --title "Short title" --prompt "Prompt to execute"
+```
+
+List items:
+
+```bash
+node <skill-dir>/scripts/todo.mjs --action list --thread <threadId>
+```
+
+Get the next item:
+
+```bash
+node <skill-dir>/scripts/todo.mjs --action next --thread <threadId>
+```
+
+Mark the active item done:
+
+```bash
+node <skill-dir>/scripts/todo.mjs --action done --thread <threadId>
+```
+
+Remove or clear:
+
+```bash
+node <skill-dir>/scripts/todo.mjs --action remove --thread <threadId> --id <itemId>
+node <skill-dir>/scripts/todo.mjs --action clear --thread <threadId> --scope pending
+```
+
+When the user says **start/run the todo list**:
+
+1. Call `next`.
+2. Execute the returned prompt in the current turn, or assign it to an existing worker when appropriate.
+3. Call `done`.
+4. Repeat until `next` returns no pending item.
+5. Finish with a compact checklist summary.
+
+The todo list is intentionally a simple saved checklist. Do not claim that a background process scans or sends todos after this turn ends.
 
 ## Worker behavior
 
 A worker conversation should:
 
 1. Execute only the assigned task.
-2. Avoid changing the manager's overall direction.
-3. Finish with a concise summary containing changes, evidence, and verification.
-4. Return control to the manager after the result.
+2. Avoid changing the manager's direction.
+3. Finish with a concise summary of changes, evidence, and verification.
+4. Never create another worker.
 
-Workers do not create more workers.
+## Safety and recovery
 
-## Manager behavior
-
-The manager owns:
-
-- the goal;
-- task breakdown;
-- acceptance criteria;
-- worker creation;
-- review of worker results;
-- the final answer to the user.
-
-Do not do a worker's delivery task in parallel unless the user explicitly asks the manager to contribute directly.
-
-## Recovery
-
-- If a conversation title prefix was removed, use its known thread id rather than guessing.
-- If a worker turn is still running, wait instead of sending a duplicate task.
-- If sending fails, do not create a replacement worker automatically; report the error and retry with the correct thread id.
-- If a worker is no longer needed, ask before archiving or deleting it.
+- Never infer a thread id from its title.
+- Do not create replacement workers after a send failure; retry the correct thread id.
+- Wait for a running worker instead of issuing a duplicate task.
+- Do not archive or delete a worker without user confirmation.

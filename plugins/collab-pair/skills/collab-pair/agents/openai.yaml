@@ -1,6 +1,6 @@
 interface:
-  display_name: "双对话协作"
-  short_description: "把当前对话设为项目经理，并让经理创建员工对话"
+  display_name: "Collab Pair"
+  short_description: "Manager and employee conversations with a simple todo list"
   icon_small: "./assets/icon.svg"
   icon_large: "./assets/icon.svg"
-  default_prompt: "Use $collab-pair to make this conversation a project manager and create worker conversations when needed."
+  default_prompt: "Use $collab-pair to make this conversation a project manager, create employee conversations when requested, and manage a simple todo list."

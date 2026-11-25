@@ -1,66 +1,95 @@
-# 双对话协作
+# Collab Pair
 
-一个极简 Codex 插件：把当前对话设为项目经理，然后让项目经理自己创建员工对话并分配任务。
+A small Codex plugin that does three things:
 
-它只使用 Codex 自带的：
+1. Make the current conversation a project manager.
+2. Let the manager create employee conversations and delegate work.
+3. Keep a persistent todo list for the conversation.
 
-- `list_threads`
-- `create_thread`
-- `send_message_to_thread`
-- `wait_threads`
-- `read_thread`
-- `set_thread_title`
+No MCP server, task board, background daemon, or remote relay.
 
-没有任务板、数据库、后台服务、跨设备中继或额外窗口。
-
-## 安装
+## Install
 
 ```bash
 codex plugin marketplace add awa1231/codex-collab-pair
 codex plugin add collab-pair@codex-collab
 ```
 
-安装后新建一个 Codex 对话。
+Start a new Codex conversation after installing.
 
-## 使用
+## Use
 
-把当前对话设为项目经理：
-
-```text
-用 $collab-pair 把这个对话设为项目经理
-```
-
-经理会把标题改成：
+Make the current conversation the manager:
 
 ```text
-【项目经理】原标题
+Use $collab-pair to make this conversation the project manager.
 ```
 
-随后让项目经理创建员工：
+Default title:
 
 ```text
-让项目经理创建一个前端员工，并让它检查登录页面
+[Project Manager] Original title
 ```
 
-经理会：
+Create an employee:
 
-1. 调用 `create_thread` 创建员工对话；
-2. 将标题设为 `【员工】<名称>`；
-3. 把任务和验收标准发给员工；
-4. 等待员工完成；
-5. 读取结果并向你汇总。
+```text
+Create an employee to inspect the login page.
+```
 
-## 原则
+The manager creates a new conversation titled:
 
-- 只在用户明确要求时创建员工对话。
-- 一个经理可以创建多个员工。
-- 经理负责目标、拆分、验收和最终回复。
-- 员工只执行当前任务并给出最终交付说明。
+```text
+[Employee] Employee name
+```
 
-## 与旧版本的区别
+Then it assigns the task, waits, reads the result, and reports back.
 
-2.0.0 删除了 1.x 的所有复杂能力，只保留“设为经理”和“经理创建员工”两条核心流程。
+## Todo list
+
+```text
+Add these to my todo list:
+1. Inspect the login page
+2. Fix the validation bug
+3. Run the regression tests
+```
+
+Manage items:
+
+```text
+Show my todo list.
+Start the next todo.
+Mark it done.
+Clear pending todos.
+```
+
+The todo list is stored in:
+
+```text
+$CODEX_HOME/collab-pair/todos.json
+```
+
+## Language
+
+English is the default for role prefixes, generated prompts, statuses, and todo summaries.
+
+Chinese mode is available when explicitly requested:
+
+- `【项目经理】`
+- `【员工】`
+
+## 中文简版
+
+- 把当前对话设为项目经理。
+- 项目经理可以创建员工对话并分配任务。
+- 任意对话可以保存简单待办列表。
+- 默认英文；明确要求时使用中文。
+- 不包含任务板、服务器、中继或后台进程。
+
+## Limits
+
+Codex plugins cannot add items to the native conversation right-click menu. Start the workflow from the conversation with the `$collab-pair` phrase.
 
 ## License
 
-MIT。
+MIT.

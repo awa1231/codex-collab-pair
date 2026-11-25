@@ -1,7 +1,7 @@
 {
   "name": "collab-pair",
-  "version": "2.0.0",
-  "description": "Turn any Codex conversation into a project manager that can create worker conversations and delegate tasks using Codex's built-in thread tools.",
+  "version": "2.1.0",
+  "description": "Turn a Codex conversation into a project manager, create worker conversations, delegate tasks, and keep a simple persistent todo list.",
   "author": {
     "name": "awa1231"
   },
@@ -11,13 +11,14 @@
     "project manager",
     "worker",
     "create thread",
-    "delegation"
+    "delegation",
+    "todo list"
   ],
   "skills": "./skills/",
   "interface": {
-    "displayName": "双对话协作",
-    "shortDescription": "把当前对话设为项目经理并让它创建员工对话",
-    "longDescription": "一个极简的 Codex 协作插件：把当前对话设为项目经理后，项目经理可以自己创建员工对话、分配任务、等待结果并汇总，不需要额外的任务板、服务器或配置。",
+    "displayName": "Collab Pair",
+    "shortDescription": "Make a conversation a manager and create employee conversations",
+    "longDescription": "A deliberately small Codex plugin: mark a conversation as project manager, let it create employee conversations, delegate tasks, and keep a simple saved todo list. No task board, server, or background daemon.",
     "developerName": "awa1231",
     "category": "Productivity",
     "capabilities": [
@@ -26,9 +27,9 @@
       "Write"
     ],
     "defaultPrompt": [
-      "把这个对话设为项目经理",
-      "让项目经理创建一个员工对话并分配任务",
-      "让项目经理再创建一个员工并汇总结果"
+      "Make this conversation the project manager",
+      "Create an employee conversation and assign it a task",
+      "Add these steps to my project todo list"
     ],
     "brandColor": "#2563EB",
     "composerIcon": "./assets/icon.svg",
