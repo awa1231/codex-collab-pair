@@ -1,80 +1,116 @@
 ---
 name: collab-pair
-description: Coordinate one Codex project-manager thread with local or remote worker threads through automatic dispatch, structured reports, project grouping, review, and repeated rounds. Use when the user wants to link Codex conversations, run a multi-round manager-worker project, or monitor a collaboration task board.
+description: Turn a Codex conversation into a project manager that can create worker conversations and delegate tasks. Use when the user asks to make the current conversation a project manager, create workers for it, or have that manager assign tasks across conversations.
 metadata:
-  short-description: Coordinate manager and worker Codex threads
+  short-description: Make a conversation manage worker conversations
 ---
 
 # Collab Pair
 
-Use the `collab_pair` MCP tools to persist role links and task state, and Codex thread tools to list, create, and observe conversations. The manager owns the project goal, task breakdown, and acceptance criteria. Workers execute one dispatched round at a time and report honestly.
+Keep this workflow small. Use only Codex's built-in conversation tools; this plugin has no task board, database, or background server.
 
-The plugin supports projects, multiple workers per manager, temporary/permanent links, automatic local delivery through `codex queue`, and cross-device delivery through the bundled relay hub.
+## Roles
 
-## Identify the current role
+- A project manager is the current conversation after its title is prefixed with `【项目经理】`.
+- A worker is a conversation created by the manager with a title prefixed by `【员工】`.
+- The user remains in control of whether new conversations are created.
 
-1. Get the current thread id with `node <skill-dir>/scripts/thread-context.mjs`.
-2. Call `collab_status` with that id.
-3. If status is unlinked and the user wants to start, call `collab_init` with the current id, title, goal, and language.
+## Identify the current conversation
 
-Never infer the current thread id from a title alone. Use the environment id printed by the helper.
+Run:
 
-## Manager workflow
+```bash
+node <skill-dir>/scripts/thread-context.mjs
+```
 
-- Use `list_threads` to find existing worker threads. Use `create_thread` only when the user explicitly asks for a new worker thread. Codex model choices can be set only during explicit thread creation; there is no supported tool for changing an existing thread's model.
-- Link workers with `collab_link`. Supply exact thread ids, current titles, a project name, and `mode: "temporary" | "permanent"`. Temporary links unbind on `collab_done`; permanent links stay until `collab_unlink`.
-- Immediately before the first message to each thread, confirm that the user explicitly authorized messaging that thread. Their request to run or continue the collaboration normally provides that authorization.
-- For each round, call `collab_dispatch` first. It rejects duplicate pending rounds and returns the exact `dispatch.messageText`.
-- `collab_dispatch` attempts automatic delivery by default. If `delivery.sent` is true, do not send the prompt again. If delivery failed, send `dispatch.messageText` with `send_message_to_thread` or set `send: false` for manual delivery.
-- Use `wait_threads` to wait for the worker to finish. Do not mark a round complete before the worker has ended its turn.
-- Read the worker result with `read_thread`, then call `collab_complete_round` with the final text and turn reason. Review the returned manager-facing report before deciding the next round.
-- Continue while acceptance criteria are unmet. Call `collab_done` only after the user or manager has verified the outcome.
-- Rename a project with `collab_project`; every worker managed by that thread follows the same project name.
+Use the printed `threadId`. Then call `list_threads` and find the exact conversation. Never infer the id from a title.
 
-## Worker workflow
+## Make the current conversation a project manager
 
-When a message starts with `【协作任务` or `[Collaboration task`, treat it as a worker assignment:
+When the user says to make this conversation a project manager:
 
-1. Follow the latest task and acceptance criteria without expanding scope.
-2. Before ending the turn, call `collab_report` with `worker_thread_id`, `status`, `summary`, `details`, and `next`.
-3. Make the final assistant response a concise deliverable or verification summary. The manager will read that final output and record it with `collab_complete_round`.
-4. Do not dispatch to other workers. Do not call `collab_done`; only the manager closes a worker.
+1. Get the current thread id and metadata with the helper and `list_threads`.
+2. Remove an existing `【项目经理】` or `【员工】` prefix from the current title.
+3. Call `set_thread_title` and prefix the title with `【项目经理】`.
+4. Confirm briefly that this conversation is now the manager.
 
-Use `done` only when the round is complete and verified, `partial` when useful work remains, and `blocked` when a decision or missing input prevents progress.
+Do not create a worker during this step. Creating conversations requires a later explicit user request such as “创建一个员工” or “把这个任务交给员工”.
 
-For a remote dispatch, the same rule applies; use the `worker_thread_id` included in the remote task.
+Example:
 
-## Status and board
+```text
+原标题：修复登录流程
+新标题：【项目经理】修复登录流程
+```
 
-- `collab_status` answers “what am I in this collaboration?”
-- `collab_board` returns all tasks, active first, plus project groups. Render it as a compact Markdown table when the user asks for the board.
-- A pending round is `等待回报`; an active worker with no pending round is `空闲`; a closed link is `已结束`.
+## Create a worker
 
-## Integrated Codex app
+When the user explicitly asks the project manager to create a worker:
 
-When the user asks for the visual interface, the task board, or settings, call `collab_dashboard`. It is an MCP App tool: Codex renders the task board inline or in the task side panel, with no separate browser tab required.
+1. Confirm that the current conversation is the manager.
+2. Call `create_thread`.
+3. Use the same project/environment as the manager when possible.
+4. Set the new title to `【员工】<worker name>`.
+5. Give the new conversation a short prompt:
 
-The MCP App supports viewing projects and tasks, linking workers, dispatching rounds, copying a fallback prompt, project and runtime settings, cross-device relay setup, closing a worker, unlinking, and opening the optional native window. It uses the same persisted state as the MCP tools.
+```text
+你是项目经理创建的员工对话。
 
-Use `collab_open_window` only when the user explicitly wants a separate native Windows window. For text-only hosts that do not support MCP Apps, the older local dashboard URL remains available as a fallback.
+本轮任务：
+<task>
 
-## Cross-device collaboration
+验收标准：
+<acceptance, if provided>
 
-Configure both devices with `collab_remote({ action: "configure", hubUrl, hubToken, hubRoom, deviceName })`.
+直接执行任务，不要扩大范围。结束时给出简洁的交付说明、修改内容和验证结果。
+```
 
-- On the worker device, register one local conversation as `collab_remote({ action: "alias", alias, session, currentTitle })`.
-- On the manager device, link it with `collab_remote({ action: "link", managerThreadId, device, worker: alias, name, mode })`.
-- Dispatch normally. The manager sends through the relay; the worker plugin queues the task into its local Codex thread and sends the structured report back.
-- The manager plugin records a remote report automatically and queues the manager conversation. Do not wait for a synthetic remote thread id with `wait_threads`.
-- Run `node hub.mjs --port 8787 --token <long-random-secret>` on one machine or small VPS. Put it behind HTTPS before using it across untrusted networks. The hub keeps messages in memory for 15 minutes.
-- Use `collab_remote({ action: "status" | "aliases" })` to inspect the relay and aliases.
+6. Return the new conversation title and id to the user.
 
-## Titles and cleanup
+Create one worker per explicitly requested role. If the user asks for three workers, create three separate conversations. Do not create workers speculatively.
 
-When a result contains `titleUpdates` and title prefixes are enabled, read the current title and apply each update with `set_thread_title`. On unlink or close, remove only the configured manager/worker prefixes and leave the rest of each title intact. Do not append or remove prefixes again when `currentTitle === nextTitle`.
+If `create_thread` cannot select a working directory or project, ask the user to create the worker from the intended workspace; do not guess.
 
-## Unattended progress
+## Assign another task
 
-`wait_threads` keeps a manager turn alive while workers run. For progress across separate turns, use `collab_due` only when the user asks for unattended monitoring; configure a thread heartbeat with `automation_update` rather than polling in a loop. A heartbeat should notify only on completion, failure, or required user action.
+When a worker already exists, use `send_message_to_thread` with its exact thread id. Include:
 
-Read [references/thread-workflow.md](references/thread-workflow.md) for detailed sequencing, title handling, and recovery rules.
+- the task;
+- scope limits;
+- acceptance criteria;
+- a request for a concise final deliverable and verification summary.
+
+Then call `wait_threads` for that worker and use `read_thread` to obtain its final answer.
+
+When several workers are running independently, wait for up to eight using `wait_threads`, then read each completed result.
+
+## Worker behavior
+
+A worker conversation should:
+
+1. Execute only the assigned task.
+2. Avoid changing the manager's overall direction.
+3. Finish with a concise summary containing changes, evidence, and verification.
+4. Return control to the manager after the result.
+
+Workers do not create more workers.
+
+## Manager behavior
+
+The manager owns:
+
+- the goal;
+- task breakdown;
+- acceptance criteria;
+- worker creation;
+- review of worker results;
+- the final answer to the user.
+
+Do not do a worker's delivery task in parallel unless the user explicitly asks the manager to contribute directly.
+
+## Recovery
+
+- If a conversation title prefix was removed, use its known thread id rather than guessing.
+- If a worker turn is still running, wait instead of sending a duplicate task.
+- If sending fails, do not create a replacement worker automatically; report the error and retry with the correct thread id.
+- If a worker is no longer needed, ask before archiving or deleting it.

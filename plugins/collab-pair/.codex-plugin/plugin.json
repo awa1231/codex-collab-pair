@@ -1,7 +1,7 @@
 {
   "name": "collab-pair",
-  "version": "1.4.0",
-  "description": "Coordinate one Codex project-manager thread with local or remote workers, with an integrated MCP App task board, projects, automatic queue delivery, relayed reports, and an optional native window.",
+  "version": "2.0.0",
+  "description": "Turn any Codex conversation into a project manager that can create worker conversations and delegate tasks using Codex's built-in thread tools.",
   "author": {
     "name": "awa1231"
   },
@@ -10,18 +10,14 @@
     "collaboration",
     "project manager",
     "worker",
-    "threads",
-    "multi-round",
-    "task board",
-    "cross-device",
-    "remote workers"
+    "create thread",
+    "delegation"
   ],
   "skills": "./skills/",
-  "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "双对话协作",
-    "shortDescription": "让项目经理线程协调多个 Codex 员工线程",
-    "longDescription": "把一个 Codex 项目经理线程和多个本地或远程员工线程关联起来。任务板以 Codex 内嵌 MCP App 展示，无需另开网页；同时支持项目分组、临时/永久关联、自动 queue 派发、结构化回报、停滞提醒、跨设备中继和可选的原生 Windows 窗口。状态持久化到本机，项目经理始终掌握目标与验收。",
+    "shortDescription": "把当前对话设为项目经理并让它创建员工对话",
+    "longDescription": "一个极简的 Codex 协作插件：把当前对话设为项目经理后，项目经理可以自己创建员工对话、分配任务、等待结果并汇总，不需要额外的任务板、服务器或配置。",
     "developerName": "awa1231",
     "category": "Productivity",
     "capabilities": [
@@ -30,11 +26,9 @@
       "Write"
     ],
     "defaultPrompt": [
-      "用双对话协作把这个项目分给多个员工线程执行",
-      "关联一个员工线程并派发第一轮任务",
-      "配置跨设备中继并关联远端员工",
-      "在 Codex 里打开双对话协作任务板",
-      "打开双对话协作的可选原生任务窗口"
+      "把这个对话设为项目经理",
+      "让项目经理创建一个员工对话并分配任务",
+      "让项目经理再创建一个员工并汇总结果"
     ],
     "brandColor": "#2563EB",
     "composerIcon": "./assets/icon.svg",

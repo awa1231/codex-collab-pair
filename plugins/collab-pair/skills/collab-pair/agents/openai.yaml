@@ -1,6 +1,6 @@
 interface:
   display_name: "双对话协作"
-  short_description: "让项目经理线程协调多个 Codex 员工线程并保留完整任务状态"
+  short_description: "把当前对话设为项目经理，并让经理创建员工对话"
   icon_small: "./assets/icon.svg"
   icon_large: "./assets/icon.svg"
-  default_prompt: "Use $collab-pair to coordinate this project across one manager and multiple worker threads."
+  default_prompt: "Use $collab-pair to make this conversation a project manager and create worker conversations when needed."
