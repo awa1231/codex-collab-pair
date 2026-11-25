@@ -8,6 +8,18 @@ A small Codex plugin that does three things:
 
 No MCP server, task board, background daemon, or remote relay.
 
+## Portability
+
+Works on Windows, macOS, and Linux with:
+
+- Codex desktop thread tools (`create_thread`, `wait_threads`, and related tools)
+- Node.js 20 or newer
+- `codex` CLI on `PATH`
+
+If the Codex executable is not on `PATH`, set `CODEX_CLI_PATH` to its absolute path.
+
+Todo state is stored under `$CODEX_HOME/collab-pair/todos.json`, or under `~/.codex` when `CODEX_HOME` is unset. No user path, machine ID, thread ID, port, or credential is bundled with the plugin.
+
 ## Install
 
 ```bash

@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.1.1
+
+- Removed runtime working-directory and platform output from the thread context helper.
+- Added a `CODEX_SESSION_ID` fallback for machines where `CODEX_THREAD_ID` is unavailable.
+- Removed local state paths from todo command output.
+- Documented Windows, macOS, Linux, `CODEX_HOME`, PATH, and `CODEX_CLI_PATH` portability requirements.
+
 ## 2.1.0
 
 - Added English manager and employee prompts and title prefixes.

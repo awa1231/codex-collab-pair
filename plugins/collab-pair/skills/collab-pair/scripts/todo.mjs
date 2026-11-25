@@ -119,14 +119,13 @@ function run(args) {
     bucket.items.push(item);
     bucket.updatedAt = Date.now();
     saveState(statePath, state);
-    return { ok: true, action, statePath, item: cleanItem(item), summary: summary(bucket.items) };
+    return { ok: true, action, item: cleanItem(item), summary: summary(bucket.items) };
   }
 
   if (action === 'list') {
     return {
       ok: true,
       action,
-      statePath,
       threadId,
       items: bucket.items.map(cleanItem),
       summary: summary(bucket.items),
@@ -147,7 +146,6 @@ function run(args) {
     return {
       ok: true,
       action,
-      statePath,
       item: item === undefined ? null : cleanItem(item),
       summary: summary(bucket.items),
       message: item === undefined ? 'No pending todo items.' : 'Execute this todo now.',
@@ -164,7 +162,7 @@ function run(args) {
     item.doneAt = Date.now();
     bucket.updatedAt = Date.now();
     saveState(statePath, state);
-    return { ok: true, action, statePath, item: cleanItem(item), summary: summary(bucket.items) };
+    return { ok: true, action, item: cleanItem(item), summary: summary(bucket.items) };
   }
 
   if (action === 'remove') {
@@ -174,7 +172,7 @@ function run(args) {
     if (bucket.items.length === before) throw new Error(`Todo item not found: ${id}`);
     bucket.updatedAt = Date.now();
     saveState(statePath, state);
-    return { ok: true, action, statePath, removed: id, summary: summary(bucket.items) };
+    return { ok: true, action, removed: id, summary: summary(bucket.items) };
   }
 
   if (action === 'clear') {
@@ -191,7 +189,7 @@ function run(args) {
         ));
     bucket.updatedAt = Date.now();
     saveState(statePath, state);
-    return { ok: true, action, statePath, scope, summary: summary(bucket.items) };
+    return { ok: true, action, scope, summary: summary(bucket.items) };
   }
 
   throw new Error(`Unknown action: ${action}`);

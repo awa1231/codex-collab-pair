@@ -1,11 +1,10 @@
 #!/usr/bin/env node
 
-const threadId = process.env.CODEX_THREAD_ID?.trim() ?? '';
+const sessionId = process.env.CODEX_SESSION_ID?.trim() || '';
+const threadId = process.env.CODEX_THREAD_ID?.trim() || sessionId;
 const payload = {
   threadId: threadId || null,
-  cwd: process.cwd(),
-  platform: process.platform,
-  codexSessionId: process.env.CODEX_SESSION_ID?.trim() || null,
+  codexSessionId: sessionId || null,
 };
 
 if (payload.threadId === null) {

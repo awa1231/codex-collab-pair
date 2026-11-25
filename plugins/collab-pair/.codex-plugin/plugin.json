@@ -1,6 +1,6 @@
 {
   "name": "collab-pair",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Turn a Codex conversation into a project manager, create worker conversations, delegate tasks, and keep a simple persistent todo list.",
   "author": {
     "name": "awa1231"

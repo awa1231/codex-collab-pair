@@ -1,6 +1,6 @@
 {
   "name": "codex-collab-pair",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "A minimal Codex plugin that turns a conversation into a project manager, creates employee conversations, delegates tasks, and keeps a simple todo list.",
   "type": "module",
   "license": "MIT",
