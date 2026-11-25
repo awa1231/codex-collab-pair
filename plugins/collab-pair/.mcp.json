@@ -1,0 +1,29 @@
+{
+  "mcpServers": {
+    "collab_pair": {
+      "command": "node",
+      "args": [
+        "./server.mjs"
+      ],
+      "cwd": ".",
+      "env_vars": [
+        "CODEX_HOME",
+        "CODEX_CLI_PATH",
+        "HOME",
+        "USERPROFILE",
+        "LOCALAPPDATA",
+        "TEMP",
+        "TMP",
+        "PATH",
+        "PATHEXT",
+        "SYSTEMROOT",
+        "COLLAB_HUB_URL",
+        "COLLAB_HUB_TOKEN",
+        "COLLAB_HUB_ROOM",
+        "COLLAB_DEVICE_NAME"
+      ],
+      "startup_timeout_sec": 10,
+      "tool_timeout_sec": 120
+    }
+  }
+}

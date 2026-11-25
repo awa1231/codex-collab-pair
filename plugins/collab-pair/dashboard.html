@@ -1,0 +1,941 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>双对话协作</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --surface: #ffffff;
+      --surface-2: #eef2f8;
+      --text: #172033;
+      --muted: #64708a;
+      --line: #dbe2ee;
+      --primary: #2563eb;
+      --primary-soft: #e7efff;
+      --success: #177a50;
+      --success-soft: #e4f6ed;
+      --warning: #9a5b07;
+      --warning-soft: #fff2d8;
+      --danger: #ba2f45;
+      --danger-soft: #ffe8ec;
+      --shadow: 0 18px 50px rgba(34, 53, 90, 0.09);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0c1019;
+        --surface: #141a26;
+        --surface-2: #1c2433;
+        --text: #eef3fb;
+        --muted: #9ca8bd;
+        --line: #2b3547;
+        --primary: #7ea6ff;
+        --primary-soft: #1a2d55;
+        --success: #65d5a4;
+        --success-soft: #163a2c;
+        --warning: #f4bd63;
+        --warning-soft: #3e2d15;
+        --danger: #ff8fa0;
+        --danger-soft: #48232c;
+        --shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+      }
+    }
+
+    * { box-sizing: border-box; }
+    html { background: var(--bg); }
+    body {
+      margin: 0;
+      min-width: 320px;
+      background:
+        radial-gradient(circle at 8% 0%, color-mix(in srgb, var(--primary) 12%, transparent), transparent 28rem),
+        var(--bg);
+      color: var(--text);
+      font: 14px/1.55 "Segoe UI", "Microsoft YaHei UI", system-ui, sans-serif;
+    }
+
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+    [hidden] { display: none !important; }
+
+    .shell {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 56px;
+    }
+
+    .hero {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .brand img {
+      width: 48px;
+      height: 48px;
+      flex: 0 0 auto;
+      border-radius: 13px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    h1, h2, h3, p { margin: 0; }
+    h1 { font-size: clamp(24px, 4vw, 34px); line-height: 1.12; letter-spacing: -0.03em; }
+    h2 { font-size: 18px; letter-spacing: -0.015em; }
+    h3 { font-size: 15px; }
+
+    .subtitle {
+      margin-top: 5px;
+      color: var(--muted);
+      overflow-wrap: anywhere;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .status-pill, .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .status-pill {
+      color: var(--success);
+      background: var(--success-soft);
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .button {
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      padding: 7px 13px;
+      color: var(--text);
+      background: var(--surface);
+      font-weight: 600;
+      transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+    }
+
+    .button:hover { border-color: color-mix(in srgb, var(--primary) 55%, var(--line)); }
+    .button:active { transform: translateY(1px); }
+    .button:disabled { cursor: wait; opacity: 0.58; }
+
+    .button.primary {
+      border-color: var(--primary);
+      color: #fff;
+      background: var(--primary);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .button.primary { color: #09101e; }
+    }
+
+    .button.danger {
+      color: var(--danger);
+      border-color: color-mix(in srgb, var(--danger) 42%, var(--line));
+      background: transparent;
+    }
+
+    .button.small {
+      min-height: 31px;
+      padding: 4px 9px;
+      font-size: 12px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .stat {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--surface) 92%, transparent);
+      box-shadow: var(--shadow);
+    }
+
+    .stat-label { color: var(--muted); font-size: 12px; }
+    .stat-value { margin-top: 5px; font-size: 26px; font-weight: 650; font-variant-numeric: tabular-nums; }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 17px 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .panel-head p { margin-top: 3px; color: var(--muted); font-size: 12px; }
+
+    .filters {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+
+    .filter {
+      border: 0;
+      border-radius: 8px;
+      padding: 6px 9px;
+      color: var(--muted);
+      background: transparent;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .filter.active {
+      color: var(--primary);
+      background: var(--primary-soft);
+    }
+
+    .task-list { display: grid; gap: 0; }
+
+    .group-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--line);
+      background: var(--surface-2);
+    }
+
+    .group-head strong { font-size: 13px; }
+    .group-head span { color: var(--muted); font-size: 11px; overflow-wrap: anywhere; }
+
+    .task {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 20px;
+      padding: 17px 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .task:last-child { border-bottom: 0; }
+    .task-main { min-width: 0; }
+
+    .task-title-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      flex-wrap: wrap;
+    }
+
+    .task-title { font-size: 15px; font-weight: 650; overflow-wrap: anywhere; }
+    .muted { color: var(--muted); }
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 11px;
+      color: var(--muted);
+      overflow-wrap: anywhere;
+    }
+
+    .task-meta { margin-top: 4px; font-size: 12px; color: var(--muted); }
+    .task-copy {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      color: var(--text);
+      background: var(--surface-2);
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+
+    .task-side {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 9px;
+      min-width: 118px;
+    }
+
+    .badge.done { color: var(--success); background: var(--success-soft); }
+    .badge.waiting { color: var(--warning); background: var(--warning-soft); }
+    .badge.idle { color: var(--primary); background: var(--primary-soft); }
+    .badge.finished { color: var(--muted); background: var(--surface-2); }
+
+    .empty {
+      padding: 56px 20px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .empty strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--text);
+      font-size: 16px;
+    }
+
+    .drawers {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    details.panel { overflow: hidden; }
+    details.panel summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px 18px;
+      list-style: none;
+      font-size: 15px;
+      font-weight: 650;
+      cursor: pointer;
+    }
+
+    details.panel summary::-webkit-details-marker { display: none; }
+    details.panel summary::after {
+      content: "+";
+      color: var(--muted);
+      font-size: 20px;
+      font-weight: 400;
+    }
+
+    details.panel[open] summary { border-bottom: 1px solid var(--line); }
+    details.panel[open] summary::after { content: "−"; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 13px;
+      padding: 17px 18px 18px;
+    }
+
+    .field { display: grid; gap: 6px; }
+    .field.full { grid-column: 1 / -1; }
+    .field label { color: var(--muted); font-size: 12px; font-weight: 600; }
+
+    .input {
+      width: 100%;
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      padding: 8px 10px;
+      color: var(--text);
+      background: var(--bg);
+      outline: none;
+    }
+
+    .input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 16%, transparent); }
+    textarea.input { min-height: 104px; resize: vertical; }
+
+    .form-actions {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .result {
+      grid-column: 1 / -1;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--surface-2);
+    }
+
+    .result textarea { margin-top: 8px; background: var(--surface); }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 20;
+      max-width: min(420px, calc(100% - 36px));
+      padding: 12px 15px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      color: var(--text);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+      transition: opacity 160ms ease, transform 160ms ease;
+    }
+
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.error { border-color: var(--danger); color: var(--danger); }
+
+    .footnote {
+      margin-top: 15px;
+      color: var(--muted);
+      font-size: 12px;
+      overflow-wrap: anywhere;
+    }
+
+    @media (max-width: 760px) {
+      .shell { width: min(100% - 20px, 1120px); padding-top: 18px; }
+      .hero, .panel-head { align-items: flex-start; flex-direction: column; }
+      .hero-actions { justify-content: flex-start; }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .task { grid-template-columns: 1fr; }
+      .task-side { flex-direction: row; align-items: center; justify-content: space-between; min-width: 0; }
+      .form-grid { grid-template-columns: 1fr; }
+      .field.full, .form-actions, .result { grid-column: auto; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <div class="brand">
+        <img src="/assets/icon.svg" alt="">
+        <div>
+          <h1>双对话协作</h1>
+          <p class="subtitle">项目经理线程 · 多员工线程 · 多轮任务看板</p>
+        </div>
+      </div>
+      <div class="hero-actions">
+        <span class="status-pill"><span class="dot"></span><span id="healthText">本机服务运行中</span></span>
+        <button class="button" id="refreshButton" type="button">刷新看板</button>
+      </div>
+    </header>
+
+    <section class="stats" aria-label="协作概览">
+      <div class="stat"><div class="stat-label">进行中</div><div class="stat-value" id="activeCount">0</div></div>
+      <div class="stat"><div class="stat-label">等待回报</div><div class="stat-value" id="waitingCount">0</div></div>
+      <div class="stat"><div class="stat-label">空闲员工</div><div class="stat-value" id="idleCount">0</div></div>
+      <div class="stat"><div class="stat-label">全部任务</div><div class="stat-value" id="totalCount">0</div></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <h2>全部任务</h2>
+          <p id="generatedAt">正在读取状态…</p>
+        </div>
+        <div class="filters" role="group" aria-label="任务筛选">
+          <button class="filter active" data-filter="all" type="button">全部</button>
+          <button class="filter" data-filter="active" type="button">进行中</button>
+          <button class="filter" data-filter="waiting" type="button">等待回报</button>
+          <button class="filter" data-filter="idle" type="button">空闲</button>
+          <button class="filter" data-filter="done" type="button">已结束</button>
+        </div>
+      </div>
+      <div class="task-list" id="taskList" aria-live="polite">
+        <div class="empty"><strong>正在加载</strong>请稍候…</div>
+      </div>
+    </section>
+
+    <section class="drawers" aria-label="协作操作">
+      <details class="panel" open>
+        <summary>派发下一轮</summary>
+        <form class="form-grid" id="dispatchForm">
+          <div class="field">
+            <label for="dispatchManager">项目经理线程 ID</label>
+            <input class="input" id="dispatchManager" name="managerThreadId" autocomplete="off" required>
+          </div>
+          <div class="field">
+            <label for="dispatchWorker">员工线程</label>
+            <select class="input" id="dispatchWorker" name="worker" required>
+              <option value="">先关联一个员工</option>
+            </select>
+          </div>
+          <div class="field full">
+            <label for="dispatchTask">本轮任务</label>
+            <textarea class="input" id="dispatchTask" name="task" required placeholder="写清目标、范围和交付物"></textarea>
+          </div>
+          <div class="field full">
+            <label for="dispatchAcceptance">验收标准</label>
+            <textarea class="input" id="dispatchAcceptance" name="acceptance" placeholder="可选；写明如何验收"></textarea>
+          </div>
+          <div class="form-actions">
+            <button class="button primary" type="submit">生成并记录本轮</button>
+            <span class="muted" id="dispatchHint">生成后把提示词发送给对应 Codex 员工线程。</span>
+          </div>
+          <div class="result" id="dispatchResult" hidden>
+            <strong>要发送给员工的协作任务</strong>
+            <textarea class="input" id="dispatchMessage" readonly></textarea>
+            <div class="form-actions">
+              <button class="button" id="copyDispatch" type="button">复制任务提示词</button>
+              <span class="muted">在 Codex 的员工线程中发送这段内容。</span>
+            </div>
+          </div>
+        </form>
+      </details>
+
+      <details class="panel">
+        <summary>关联员工线程</summary>
+        <form class="form-grid" id="linkForm">
+          <div class="field">
+            <label for="linkManager">项目经理线程 ID</label>
+            <input class="input" id="linkManager" name="currentThreadId" autocomplete="off" required>
+          </div>
+          <div class="field">
+            <label for="linkManagerTitle">项目经理标题</label>
+            <input class="input" id="linkManagerTitle" name="currentTitle" autocomplete="off" placeholder="可选">
+          </div>
+          <div class="field">
+            <label for="linkWorker">员工线程 ID</label>
+            <input class="input" id="linkWorker" name="peerThreadId" autocomplete="off" required>
+          </div>
+          <div class="field">
+            <label for="linkWorkerTitle">员工标题</label>
+            <input class="input" id="linkWorkerTitle" name="peerTitle" autocomplete="off" placeholder="可选">
+          </div>
+          <div class="field full">
+            <label for="linkGoal">项目总目标</label>
+            <input class="input" id="linkGoal" name="goal" autocomplete="off" placeholder="可选；后续轮次会沿用">
+          </div>
+          <div class="field">
+            <label for="linkProject">项目名称</label>
+            <input class="input" id="linkProject" name="projectName" autocomplete="off" placeholder="可选；默认使用经理标题">
+          </div>
+          <div class="field">
+            <label for="linkMode">关联模式</label>
+            <select class="input" id="linkMode" name="mode">
+              <option value="temporary">临时：收尾后自动解绑</option>
+              <option value="permanent">永久：保留关联与历史</option>
+            </select>
+          </div>
+          <div class="form-actions">
+            <button class="button primary" type="submit">建立关联</button>
+            <span class="muted">线程 ID 可从 Codex 的线程列表或 `$collab-pair` 获取。</span>
+          </div>
+        </form>
+      </details>
+
+      <details class="panel">
+        <summary>协作设置</summary>
+        <form class="form-grid" id="configForm">
+          <div class="field">
+            <label for="configManager">项目经理线程 ID</label>
+            <input class="input" id="configManager" name="managerThreadId" autocomplete="off" required>
+          </div>
+          <div class="field">
+            <label for="configLanguage">消息语言</label>
+            <select class="input" id="configLanguage" name="language">
+              <option value="zh">中文</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="configRounds">最大轮次</label>
+            <input class="input" id="configRounds" name="maxRounds" type="number" min="0" max="200" value="0" placeholder="0 = 不限制">
+          </div>
+          <div class="field">
+            <label for="configProject">项目名称</label>
+            <input class="input" id="configProject" name="projectName" autocomplete="off" placeholder="改名后同步到看板">
+          </div>
+          <div class="field">
+            <label for="configNudge">空闲提醒间隔（分钟）</label>
+            <input class="input" id="configNudge" name="nudgeAfterMinutes" type="number" min="5" max="1440" value="20">
+          </div>
+          <div class="field">
+            <label for="configAutoSend">自动派发</label>
+            <select class="input" id="configAutoSend" name="autoSend">
+              <option value="true">开启：使用 codex queue</option>
+              <option value="false">关闭：手动发送提示词</option>
+            </select>
+          </div>
+          <div class="form-actions">
+            <button class="button primary" type="submit">保存设置</button>
+          </div>
+        </form>
+      </details>
+    </section>
+
+    <p class="footnote" id="storagePath"></p>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const elements = {
+      activeCount: document.getElementById('activeCount'),
+      waitingCount: document.getElementById('waitingCount'),
+      idleCount: document.getElementById('idleCount'),
+      totalCount: document.getElementById('totalCount'),
+      generatedAt: document.getElementById('generatedAt'),
+      taskList: document.getElementById('taskList'),
+      storagePath: document.getElementById('storagePath'),
+      dispatchManager: document.getElementById('dispatchManager'),
+      dispatchWorker: document.getElementById('dispatchWorker'),
+      dispatchForm: document.getElementById('dispatchForm'),
+      dispatchResult: document.getElementById('dispatchResult'),
+      dispatchMessage: document.getElementById('dispatchMessage'),
+      linkForm: document.getElementById('linkForm'),
+      configForm: document.getElementById('configForm'),
+      refreshButton: document.getElementById('refreshButton'),
+      toast: document.getElementById('toast'),
+    };
+
+    let board = null;
+    let filter = 'all';
+    let toastTimer = null;
+
+    const esc = (value) => String(value ?? '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+
+    const formatWait = (seconds) => {
+      if (!Number.isFinite(seconds) || seconds < 0) return '';
+      if (seconds < 60) return `${Math.round(seconds)} 秒`;
+      if (seconds < 3600) return `${Math.round(seconds / 60)} 分钟`;
+      return `${Math.round(seconds / 360) / 10} 小时`;
+    };
+
+    const stateOf = (link) => {
+      if (link.status !== 'active') return { key: 'done', label: '已结束', css: 'finished' };
+      if (link.pending) return { key: 'waiting', label: '等待回报', css: 'waiting' };
+      return { key: 'idle', label: '空闲', css: 'idle' };
+    };
+
+    function showToast(message, isError = false) {
+      clearTimeout(toastTimer);
+      elements.toast.textContent = message;
+      elements.toast.className = `toast show${isError ? ' error' : ''}`;
+      toastTimer = setTimeout(() => {
+        elements.toast.className = 'toast';
+      }, 3600);
+    }
+
+    async function requestJson(url, options) {
+      const response = await fetch(url, options);
+      const value = await response.json();
+      if (!response.ok || value.ok === false) throw new Error(value.error || `HTTP ${response.status}`);
+      return value;
+    }
+
+    async function loadBoard({ quiet = false } = {}) {
+      elements.refreshButton.disabled = true;
+      try {
+        board = await requestJson('/api/board');
+        renderBoard();
+        if (!quiet) showToast('看板已刷新');
+      } catch (error) {
+        if (!quiet) showToast(error.message || '读取失败', true);
+        document.getElementById('healthText').textContent = '服务异常';
+      } finally {
+        elements.refreshButton.disabled = false;
+      }
+    }
+
+    function renderBoard() {
+      const links = Array.isArray(board?.links) ? board.links : [];
+      const waiting = links.filter((link) => stateOf(link).key === 'waiting').length;
+      const idle = links.filter((link) => stateOf(link).key === 'idle').length;
+      elements.activeCount.textContent = board?.activeCount ?? 0;
+      elements.waitingCount.textContent = waiting;
+      elements.idleCount.textContent = idle;
+      elements.totalCount.textContent = board?.totalCount ?? links.length;
+      elements.generatedAt.textContent = board?.generatedAt
+        ? `更新于 ${new Date(board.generatedAt).toLocaleString('zh-CN')}`
+        : '暂无状态';
+      elements.storagePath.textContent = board?.storage ? `状态文件：${board.storage}` : '';
+      document.getElementById('healthText').textContent = '本机服务运行中';
+
+      const visible = links.filter((link) => {
+        if (filter === 'all') return true;
+        if (filter === 'active') return link.status === 'active';
+        return stateOf(link).key === filter;
+      });
+
+      elements.taskList.innerHTML = visible.length === 0
+        ? `<div class="empty"><strong>${links.length === 0 ? '还没有协作任务' : '当前筛选没有任务'}</strong>${links.length === 0 ? '在 Codex 里创建或关联员工线程后会显示在这里。' : '切换到其他筛选查看。'}</div>`
+        : groupedMarkup(visible);
+
+      const active = links.filter((link) => link.status === 'active');
+      const workerOptions = active.map((link) => (
+        `<option value="${esc(link.workerThreadId)}">${esc(link.workerTitle || link.workerThreadId)} · 第 ${Number(link.round) || 0} 轮</option>`
+      )).join('');
+      elements.dispatchWorker.innerHTML = workerOptions || '<option value="">先关联一个员工</option>';
+      elements.dispatchWorker.disabled = active.length === 0;
+
+      if (active.length > 0 && elements.dispatchManager.value === '') {
+        elements.dispatchManager.value = active[0].managerThreadId;
+      }
+      const managerId = elements.dispatchManager.value || active[0]?.managerThreadId || '';
+      const matching = active.filter((link) => link.managerThreadId === managerId);
+      if (managerId !== '' && matching.length > 0) {
+        elements.dispatchWorker.innerHTML = matching.map((link) => (
+          `<option value="${esc(link.workerThreadId)}">${esc(link.workerTitle || link.workerThreadId)} · 第 ${Number(link.round) || 0} 轮</option>`
+        )).join('');
+      }
+    }
+
+    function groupedMarkup(visible) {
+      const groups = new Map();
+      for (const link of visible) {
+        const key = `${link.managerThreadId}\u0000${link.projectName || ''}`;
+        if (!groups.has(key)) {
+          groups.set(key, {
+            projectName: link.projectName || '未命名项目',
+            managerTitle: link.managerTitle || link.managerThreadId,
+            managerThreadId: link.managerThreadId,
+            links: [],
+          });
+        }
+        groups.get(key).links.push(link);
+      }
+      return [...groups.values()].map((group) => `
+        <div class="group-head">
+          <strong>${esc(group.projectName)}</strong>
+          <span>经理：${esc(group.managerTitle)} · ${esc(group.managerThreadId)}</span>
+        </div>
+        ${group.links.map(taskMarkup).join('')}
+      `).join('');
+    }
+
+    function taskMarkup(link) {
+      const state = stateOf(link);
+      const pending = link.pending;
+      const report = link.lastReport;
+      const wait = pending ? formatWait(pending.waitedSeconds) : '';
+      const taskText = pending ? pending.task : (link.finalSummary || '当前没有待执行任务');
+      const reportText = report
+        ? `${report.status === 'done' ? '完成' : report.status === 'blocked' ? '受阻' : '部分完成'} · ${report.summary || '无摘要'}`
+        : '还没有回报';
+      const modeText = link.mode === 'permanent' ? '永久关联' : '临时关联';
+      const remoteText = link.remote ? ` · 远程 ${esc(link.remote.alias)}@${esc(link.remote.device)}` : '';
+      return `
+        <article class="task" data-link-id="${esc(link.linkId)}">
+          <div class="task-main">
+            <div class="task-title-row">
+              <span class="task-title">${esc(link.workerTitle || link.workerThreadId)}</span>
+              <span class="badge ${state.css}">${state.label}</span>
+            </div>
+            <div class="mono">${esc(link.workerThreadId)}</div>
+            <div class="task-meta">${esc(link.projectName || '未命名项目')} · 经理：${esc(link.managerTitle || link.managerThreadId)} · 第 ${Number(link.round) || 0} 轮 · ${modeText}${remoteText}${wait ? ` · 已等待 ${wait}` : ''}</div>
+            <div class="task-copy">${esc(taskText)}</div>
+            <div class="task-meta">最近回报：${esc(reportText)}</div>
+          </div>
+          <div class="task-side">
+            ${link.status === 'active' && !pending ? `<button class="button small primary" type="button" data-action="dispatch-tab">派发</button>` : ''}
+            ${link.status === 'active' ? `<button class="button small" type="button" data-action="done">收尾</button>` : ''}
+            <button class="button small danger" type="button" data-action="unlink">解除</button>
+          </div>
+        </article>
+      `;
+    }
+
+    async function act(name, args) {
+      return requestJson('/api/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, arguments: args }),
+      });
+    }
+
+    elements.refreshButton.addEventListener('click', () => void loadBoard());
+
+    document.querySelectorAll('.filter').forEach((button) => {
+      button.addEventListener('click', () => {
+        filter = button.dataset.filter;
+        document.querySelectorAll('.filter').forEach((item) => item.classList.toggle('active', item === button));
+        renderBoard();
+      });
+    });
+
+    elements.dispatchManager.addEventListener('input', () => {
+      const managerId = elements.dispatchManager.value.trim();
+      const active = (board?.links || []).filter((link) => link.status === 'active' && link.managerThreadId === managerId);
+      elements.dispatchWorker.innerHTML = active.length === 0
+        ? '<option value="">该经理没有活动员工</option>'
+        : active.map((link) => `<option value="${esc(link.workerThreadId)}">${esc(link.workerTitle || link.workerThreadId)} · 第 ${Number(link.round) || 0} 轮</option>`).join('');
+      elements.dispatchWorker.disabled = active.length === 0;
+    });
+
+    elements.dispatchForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const data = new FormData(elements.dispatchForm);
+      const submit = event.submitter;
+      if (submit) submit.disabled = true;
+      try {
+        const result = await act('collab_dispatch', {
+          managerThreadId: String(data.get('managerThreadId') || '').trim(),
+          worker: String(data.get('worker') || '').trim(),
+          task: String(data.get('task') || '').trim(),
+          acceptance: String(data.get('acceptance') || '').trim(),
+        });
+        elements.dispatchMessage.value = result.dispatch?.messageText || '';
+        elements.dispatchResult.hidden = false;
+        elements.dispatchForm.elements.task.value = '';
+        elements.dispatchForm.elements.acceptance.value = '';
+        await loadBoard({ quiet: true });
+        showToast(
+          result.delivery?.sent
+            ? `第 ${result.round} 轮已自动派发`
+            : `第 ${result.round} 轮已记录，请复制提示词发送`,
+          result.delivery?.attempted && !result.delivery?.sent,
+        );
+      } catch (error) {
+        showToast(error.message || '派发失败', true);
+      } finally {
+        if (submit) submit.disabled = false;
+      }
+    });
+
+    document.getElementById('copyDispatch').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(elements.dispatchMessage.value);
+        showToast('任务提示词已复制');
+      } catch {
+        elements.dispatchMessage.select();
+        document.execCommand('copy');
+        showToast('任务提示词已复制');
+      }
+    });
+
+    elements.linkForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const data = new FormData(elements.linkForm);
+      const submit = event.submitter;
+      if (submit) submit.disabled = true;
+      try {
+        const result = await act('collab_link', {
+          currentThreadId: String(data.get('currentThreadId') || '').trim(),
+          peerThreadId: String(data.get('peerThreadId') || '').trim(),
+          role: 'manager',
+          currentTitle: String(data.get('currentTitle') || '').trim(),
+          peerTitle: String(data.get('peerTitle') || '').trim(),
+          goal: String(data.get('goal') || '').trim(),
+          projectName: String(data.get('projectName') || '').trim(),
+          mode: String(data.get('mode') || 'temporary'),
+        });
+        await loadBoard({ quiet: true });
+        elements.dispatchManager.value = result.link.managerThreadId;
+        elements.dispatchManager.dispatchEvent(new Event('input'));
+        showToast(`已关联 ${result.link.workerTitle || result.link.workerThreadId}`);
+      } catch (error) {
+        showToast(error.message || '关联失败', true);
+      } finally {
+        if (submit) submit.disabled = false;
+      }
+    });
+
+    elements.configForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const data = new FormData(elements.configForm);
+      const submit = event.submitter;
+      if (submit) submit.disabled = true;
+      try {
+        await act('collab_config', {
+          managerThreadId: String(data.get('managerThreadId') || '').trim(),
+          config: {
+            language: String(data.get('language') || 'zh'),
+            maxRounds: Number(data.get('maxRounds') || 0),
+            nudgeAfterMinutes: Number(data.get('nudgeAfterMinutes') || 20),
+            autoSend: String(data.get('autoSend')) !== 'false',
+          },
+        });
+        const projectName = String(data.get('projectName') || '').trim();
+        if (projectName) {
+          await act('collab_project', {
+            managerThreadId: String(data.get('managerThreadId') || '').trim(),
+            name: projectName,
+          });
+        }
+        showToast('协作设置已保存');
+        await loadBoard({ quiet: true });
+      } catch (error) {
+        showToast(error.message || '保存失败', true);
+      } finally {
+        if (submit) submit.disabled = false;
+      }
+    });
+
+    elements.taskList.addEventListener('click', async (event) => {
+      const button = event.target.closest('button[data-action]');
+      if (!button) return;
+      const task = button.closest('[data-link-id]');
+      const link = (board?.links || []).find((item) => item.linkId === task?.dataset.linkId);
+      if (!link) return;
+      if (button.dataset.action === 'dispatch-tab') {
+        elements.dispatchManager.value = link.managerThreadId;
+        elements.dispatchManager.dispatchEvent(new Event('input'));
+        elements.dispatchWorker.value = link.workerThreadId;
+        elements.dispatchForm.closest('details').open = true;
+        elements.dispatchTask.focus();
+        return;
+      }
+      if (button.dataset.action === 'done') {
+        const summary = window.prompt('输入最终验收总结：');
+        if (summary === null) return;
+        if (summary.trim() === '') {
+          showToast('总结不能为空', true);
+          return;
+        }
+        button.disabled = true;
+        try {
+          await act('collab_done', {
+            managerThreadId: link.managerThreadId,
+            worker: link.workerThreadId,
+            summary: summary.trim(),
+          });
+          await loadBoard({ quiet: true });
+          showToast('该员工协作已收尾');
+        } catch (error) {
+          showToast(error.message || '收尾失败', true);
+          button.disabled = false;
+        }
+        return;
+      }
+      if (button.dataset.action === 'unlink') {
+        if (!window.confirm(`确定解除与 ${link.workerTitle || link.workerThreadId} 的协作关系？`)) return;
+        button.disabled = true;
+        try {
+          await act('collab_unlink', {
+            threadId: link.managerThreadId,
+            worker: link.workerThreadId,
+          });
+          await loadBoard({ quiet: true });
+          showToast('关联已解除');
+        } catch (error) {
+          showToast(error.message || '解除失败', true);
+          button.disabled = false;
+        }
+      }
+    });
+
+    void loadBoard({ quiet: true });
+    setInterval(() => void loadBoard({ quiet: true }), 10000);
+  </script>
+</body>
+</html>
